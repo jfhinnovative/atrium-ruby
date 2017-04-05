@@ -46,7 +46,7 @@ module Atrium
     # INSTANCE METHODS
     #
     def accounts
-      endpoint = "users/#{self.user_guid}/members/#{self.guid}/account"
+      endpoint = "/users/#{self.user_guid}/members/#{self.guid}/accounts"
       accounts_response = ::Atrium.client.make_request(:get, endpoint)
 
       accounts_response["accounts"].map do |account|
@@ -55,7 +55,7 @@ module Atrium
     end
 
     def aggregate
-      endpoint = "users/#{self.user_guid}/members/#{self.guid}/aggregate"
+      endpoint = "/users/#{self.user_guid}/members/#{self.guid}/aggregate"
       member_response = ::Atrium.client.make_request(:post, endpoint)
 
       member_params = member_response["member"]
@@ -75,16 +75,11 @@ module Atrium
     def challenges
       endpoint = "/users/#{self.user_guid}/members/#{self.guid}/challenges"
       member_response = ::Atrium.client.make_request(:get, endpoint)
-
-      member_params = member_response["member"]
-      self.assign_attributes(member_params)
-      self
     end
 
     def delete
       endpoint = "/users/#{self.user_guid}/members/#{self.guid}"
       ::Atrium.client.make_request(:delete, endpoint)
-
       self
     end
 
@@ -99,7 +94,7 @@ module Atrium
     def resume(challenge_credentials)
       endpoint = "/users/#{self.user_guid}/members/#{self.guid}/resume"
       body = resume_params(challenge_credentials)
-      member_response = ::Atrium.client.make_request(:get, endpoint, body)
+      member_response = ::Atrium.client.make_request(:put, endpoint, body)
 
       member_params = member_response["member"]
       self.assign_attributes(member_params)
@@ -117,7 +112,7 @@ module Atrium
     end
 
     def transactions
-      endpoint = "users/#{self.user_guid}/members/#{self.guid}/transactions"
+      endpoint = "/users/#{self.user_guid}/members/#{self.guid}/transactions"
       transactions_response = ::Atrium.client.make_request(:post, endpoint)
 
       transactions_response["transactions"].map do |transaction|
@@ -159,7 +154,6 @@ module Atrium
         :member => {
           :credentials => params[:credentials],
           :identifier => params[:identifier],
-          :institution_code => params[:institution_code],
           :metadata => params[:metadata]
         }
       }
@@ -168,7 +162,7 @@ module Atrium
     def resume_params(challenge_credentials)
       {
         :member => {
-          :credentials => challenge_credentials
+          :challenges => challenge_credentials
         }
       }
     end
