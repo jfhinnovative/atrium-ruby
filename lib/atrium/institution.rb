@@ -17,7 +17,8 @@ module Atrium
     end
 
     def self.list(query_params: nil, limit: nil)
-      paginate_endpoint(query_params: query_params, limit: limit)
+      endpoint = "/institutions"
+      paginate_endpoint(url: endpoint,query_params: query_params, limit: limit)
     end
 
     def self.list_in_batches(query_params: nil, limit: nil, &block)

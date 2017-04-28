@@ -2,16 +2,16 @@ require "uri"
 
 module Atrium
   module Paginate
-    DEFAULT_RECORDS_PER_PAGE = 25
+    DEFAULT_RECORDS_PER_PAGE = 100
     INITIAL_PAGE = 1
 
     attr_accessor :current_page, :endpoint, :total_pages
 
-    def endpoint_name(query_params: nil)
+    def endpoint_name(url: nil, query_params: nil)
       @endpoint = if query_params.present?
-         "/" + klass_name + "?" + URI.encode_www_form(query_params) + "&"
+        url + "?" + URI.encode_www_form(query_params) + "&"
       else
-        "/" + klass_name + "?"
+        url + "?"
       end
     end
 
@@ -25,12 +25,25 @@ module Atrium
       @total_pages  = pagination["total_pages"]
     end
 
-    def klass_name
-      @klass_name ||= self.name.gsub("Atrium::", "").downcase.pluralize
+    def simple_class_name
+      @simple_class_name ||= self.name.gsub("Atrium::", "").downcase.pluralize
     end
 
-    def paginate_endpoint(query_params: nil, limit: nil)
-      endpoint_name(query_params: query_params)
+    def class_name
+      @class_name ||= self
+    end
+
+    def paginate_endpoint(url: nil, class_name: nil, query_params: nil, limit: nil)
+      unless url
+        raise "url is required"
+      end
+      
+      if class_name
+        @simple_class_name = class_name.name.gsub("Atrium::", "").downcase.pluralize
+        @class_name = class_name
+      end
+      
+      endpoint_name(url: url, query_params: query_params)
       get_total_pages
       response_list(limit: limit)
     end
@@ -55,10 +68,9 @@ module Atrium
       until current_page > total_pages
         paginated_endpoint =  endpoint + "page=#{current_page}&records_per_page=#{records_per_page}"
         response = ::Atrium.client.make_request(:get, paginated_endpoint)
-
         # Add new objects to the list
-        response["#{klass_name}"].each do |params|
-          list << self.new(params)
+        response["#{simple_class_name}"].each do |params|
+          list << class_name.new(params)
         end
         @current_page += 1
       end
@@ -74,7 +86,7 @@ module Atrium
         response = ::Atrium.client.make_request(:get, paginated_endpoint)
         list = []
 
-        response["#{klass_name}"].each do |params|
+        response["#{simple_class_name}"].each do |params|
           list << self.new(params)
         end
         @current_page += 1

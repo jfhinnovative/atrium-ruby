@@ -1,5 +1,6 @@
 module Atrium
   class Member
+    include ::Atrium::Paginate
     include ::ActiveAttr::Model
     include ::ActiveAttr::Attributes
 
@@ -111,13 +112,10 @@ module Atrium
       self
     end
 
-    def transactions
+    def transactions(class_name: Atrium::Transaction, query_params: nil, limit: nil)
       endpoint = "/users/#{self.user_guid}/members/#{self.guid}/transactions"
-      transactions_response = ::Atrium.client.make_request(:post, endpoint)
-
-      transactions_response["transactions"].map do |transaction|
-        ::Atrium::Transaction.new(transaction)
-      end
+      # transactions_response = ::Atrium.client.make_request(:post, endpoint)
+      transactions_response = paginate_endpoint(url: endpoint, class_name: class_name,query_params: query_params, limit: limit)
     end
 
     ##

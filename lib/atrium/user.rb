@@ -1,5 +1,6 @@
 module Atrium
   class User
+    extend ::Atrium::Paginate
     include ::ActiveAttr::Model
 
     # ATTRIBUTES
@@ -22,17 +23,19 @@ module Atrium
 
     def self.list
       endpoint = "/users"
-      users_response = ::Atrium.client.make_request(:get, endpoint)
-
-      users_response["users"].map do |user|
-        ::Atrium::User.new(user)
-      end
+      # users_response = ::Atrium.client.make_request(:get, endpoint)
+      users_response = paginate_endpoint(url: endpoint)
+      # users_response["users"].map do |user|
+        # ::Atrium::User.new(user)
+      # end
     end
 
     def self.read(guid:)
       endpoint = "/users/#{guid}"
       response = ::Atrium.client.make_request(:get, endpoint)
-
+      p "- - -"*100
+      p response
+      p "- - -"*100
       user_params = response["user"]
       ::Atrium::User.new(user_params)
     end
